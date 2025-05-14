@@ -51,7 +51,8 @@ void bucketSort(int* data, int N, int parallel, int numBuckets)
 
 void sortBucketsSequential(int **buckets, int numBuckets, int *bucketSizes)
 {
-    for (int i = 0; i < numBuckets; i++)
+    for (int i = 0; i < numBuckets; i++) {
         qsort(buckets[i], bucketSizes[i], sizeof(int), compare);
+    }
 }
 
