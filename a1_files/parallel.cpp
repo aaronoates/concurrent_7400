@@ -2,6 +2,8 @@
 #include <memory> // for unique_ptr, make_unique
 #include "parallel.h"
 #include "compare.h"
+#include <iostream>
+#include <vector>
 
 // The following allows you to refer to thread, unique_ptr, ... without using
 // std:: as a prefix.  Alternatively, you could use: using namespace std;
