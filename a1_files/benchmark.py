@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 # The location of the executable, relative to the location of this script.
 # STUDENTS: YOU MAY NEED TO CHANGE THIS TO THE LOCATION OF YOUR EXECUTABLE.
-executable = "./build/test_bs"
+executable = "./test_bs"
 
 #
 # Parameters to use for benchmarking...
@@ -63,8 +63,8 @@ def main():
     speedup_ver1 = {}
     speedup_ver2 = {}
     for num_threads in num_threads_choices:
-        speedup_ver1[num_threads] = average_time_dict_list[0][num_threads] / average_time_dict_list[1][num_threads]
-        speedup_ver2[num_threads] = average_time_dict_list[0][num_threads] / average_time_dict_list[2][num_threads]
+        speedup_ver1[num_threads] = average_time_dict_list[0][num_threads] / average_time_dict_list[1][num_threads] if average_time_dict_list[1][num_threads] != 0 else 0
+        speedup_ver2[num_threads] = average_time_dict_list[0][num_threads] / average_time_dict_list[2][num_threads] if average_time_dict_list[2][num_threads] != 0 else 0
 
     # Plot the speedup
     plt.figure()
