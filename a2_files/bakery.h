@@ -27,5 +27,8 @@ struct Bakery {
     // NOTE: Don't forget to include the <> after counting_semaphore.
     //
     counting_semaphore<> ingredientsAvail{numIngredients};
+    counting_semaphore<> countersAvail{counters.getCapacity()};
+    counting_semaphore<> ovensAvail{ovens.getCapacity()};
+    counting_semaphore<> shelvesAvail{shelves.getCapacity()};
 
 };
