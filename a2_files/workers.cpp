@@ -11,10 +11,26 @@ void Mixer::operator()() {
         // necessary semaphores, make the appropriate changes to the buffers
         // (counters, ovens, shelves), including changing the state of the
         // bread, then release the necessary semaphores.
-        //
+        // bakery.ingredientsAvail.try_acquire_for(milliseconds(200));
         // Instead of calling a semaphore's "acquire" method, you should call
         // "try_acquire_for(milliseconds(200))". See this method's description:
-        //
+        
+
+        if (!bakery.ingredientsAvail.try_acquire_for(milliseconds(200))){ //if there are no ingredients left
+            return;
+        } else {
+            if (bakery.countersAvail.try_acquire_for(milliseconds(200))){ //wait for a counter space to open up
+                
+                Bread bread; // create an instance of bread
+                bread.state = MIXED; //set the state to MIXED
+                bakery.counters.add(bread); //put the bread in the counter buffer
+                //bakery.countersAvail.release(); // there is now one less counter space
+
+            }
+        }
+
+        
+        
         // https://en.cppreference.com/w/cpp/thread/counting_semaphore/try_acquire_for.html
         // 
         // Why not call "acquire" as we've seen in the notes? The issue is
@@ -29,33 +45,54 @@ void Mixer::operator()() {
         // work.  This does not indicate an error condition, but is a normal 
         // part of the program's operation.
 
-
+        //counting_semaphore<> 
+        
+        
         
         // STUDENTS: Once you have filled in functional code above, you should
         // remove the following line.  It serves a purpose here by making all
         // tests fail from the outset (test-driven development).
-        return;
+        
    }
 }
 
 void Assistant::operator()() {
     while (true) {
         // STUDENTS: See comments above in Mixer::operator().
+        Bread bread;
 
+
+    
+        if (bakery.ovensAvail.try_acquire_for(milliseconds(200))) {
+            bread.state = BAKING;
+            bakery.ovens.add(bread);
+            bakery.countersAvail.release(); //A counter space was acquired, used to put the bread in the oven, and now the counter space can be released.
+        } else {
+            bakery.counters.add(bread); //put the bread back on the counter if no spaces available.
+            return;
+        }
 
         
         // STUDENTS: See the comment at the bottom of Mixer::operator().
-        return;
+        
     }
 }
 
 void Baker::operator()() {
     while (true) {
         // STUDENTS: See comments above in Mixer::operator().
-
+        Bread bread;
+        if (bakery.shelvesAvail.try_acquire_for(milliseconds(200))) {
+            bread.state = READY;
+            bakery.shelves.add(bread);
+            bakery.ovensAvail.release(); //A counter space was acquired, used to put the bread in the oven, and now the counter space can be released.
+        } else { 
+            bakery.ovens.add(bread);
+            return;
+        }
 
         
         // STUDENTS: See the comment at the bottom of Mixer::operator().
-        return;
+        
     }
 }
