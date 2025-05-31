@@ -25,7 +25,7 @@ public:
     }
 
     void add(Bread bread) {
-        qMutex.lock();
+        qMutex.lock(); //a Mutex is a "binary semaphore", which is a lock,  which is an instance of std::counting_semaphore<> lock{1}; Where 1 is the starting value of the counter. 
 
         if (q.size() < capacity)
             q.push(bread);

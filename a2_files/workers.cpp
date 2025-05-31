@@ -16,15 +16,15 @@ void Mixer::operator()() {
         // "try_acquire_for(milliseconds(200))". See this method's description:
         
 
-        if (!bakery.ingredientsAvail.try_acquire_for(milliseconds(200))){ //if there are no ingredients left
-            return;
+        if (!bakery.ingredientsAvail.try_acquire_for(milliseconds(200))){ //This will run if the program "DID" try to acquire an available ingredient, but it failed. Explanation:  The ! does NOT mean "there was no try to acquire an ingredient for 200 ms". it just means after trying to acquire the ingredient for 200 ms, it failed. 
+            return; //The try failed, meaning no ingredients left. The Mixer has no work left to do.
         } else {
-            if (bakery.countersAvail.try_acquire_for(milliseconds(200))){ //wait for a counter space to open up
+            if (bakery.countersAvail.try_acquire_for(milliseconds(200))){ //The program "Tried" to acquire a free counter space from the counters avail semaphore, and succeeded within 200ms.
                 
-                Bread bread; // create an instance of bread
-                bread.state = MIXED; //set the state to MIXED
-                bakery.counters.add(bread); //put the bread in the counter buffer
-                //bakery.countersAvail.release(); // there is now one less counter space
+                Bread bread; // create an instance of the bread struct as defined in the bread.h header file. 
+                bread.state = MIXED; //set the state to MIXED 
+                bakery.counters.add(bread); //put the bread in th
+               
 
             }
         }
