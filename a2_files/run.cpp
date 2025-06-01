@@ -24,13 +24,13 @@ bool test(Bakery &bakery, const OutputConfig &output) {
 }
 
 bool run(Config config) {
-    InputConfig input = config.input;
+    InputConfig input = config.input; // takes the "config" struct parameter passed into the run function and stores the "input config" struct within the "config" struct in the variable "input".
 
-    Bakery bakery{input.numIngredients, input.counterCapacity, input.ovenCapacity, input.shelfCapacity};
+    Bakery bakery{input.numIngredients, input.counterCapacity, input.ovenCapacity, input.shelfCapacity}; //Defines a Bakery object called bakery, and assigns the contents of "input" to the corresponding parameters in the constructor of bakery.
 
-    vector<Mixer> mixers(input.numMixers, Mixer(bakery));
-    vector<Assistant> assistants(input.numAssistants, Assistant(bakery));
-    vector<Baker> bakers(input.numBakers, Baker(bakery));
+    vector<Mixer> mixers(input.numMixers, Mixer(bakery)); //creates a vector of Mixer objects with a size equal to the number of Mixers. Each Mixer is constructed with the "bakery" as a parameter (same bakery for every mixer.)
+    vector<Assistant> assistants(input.numAssistants, Assistant(bakery)); //Same as above but for the Assistants.
+    vector<Baker> bakers(input.numBakers, Baker(bakery)); //Same as the two above but for the Bakers.
 
     thread mixerThreads[input.numMixers];
     thread assistantThreads[input.numAssistants];

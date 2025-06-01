@@ -23,7 +23,7 @@ void Mixer::operator()() {
                 
                 Bread bread; // create an instance of the bread struct as defined in the bread.h header file. 
                 bread.state = MIXED; //set the state to MIXED 
-                bakery.counters.add(bread); //put the bread in th
+                bakery.counters.add(bread); //calls the add function of buffer.h, which first locks access to the "counters" bread buffer so that no other threads can access "counters" while add() is running. If the size of the queue is less than the capacity of the "counter", the "bread" object is added to the queue. Else, it throws a runtime error. Finally, access to this buffer is unlocked again so other threads can access it.
                
 
             }
