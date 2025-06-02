@@ -19,7 +19,7 @@ void Mixer::operator()() {
         if (!bakery.ingredientsAvail.try_acquire_for(milliseconds(200))){ //This will run if the program "DID" try to acquire an available ingredient, but it failed. Explanation:  The ! does NOT mean "there was no try to acquire an ingredient for 200 ms". it just means after trying to acquire the ingredient for 200 ms, it failed. 
             return; //The try failed, meaning no ingredients left. The Mixer has no work left to do.
         } else {
-            if (bakery.countersAvail.try_acquire_for(milliseconds(200))){ //The program "Tried" to acquire a free counter space from the counters avail semaphore, and succeeded within 200ms.
+            if (bakery.countersAvail.try_acquire_for(milliseconds(200))){ //The program "Tried" to acquire a free counter space from the counters avail semaphore, and succeeded within 200ms. For the first set of configs, it was once 5 spots, and is now 4.
                 
                 Bread bread; // create an instance of the bread struct as defined in the bread.h header file. 
                 bread.state = MIXED; //set the state to MIXED 
@@ -63,12 +63,12 @@ void Assistant::operator()() {
 
 
     
-        if (bakery.ovensAvail.try_acquire_for(milliseconds(200))) {
+        if (bakery.ovensAvail.try_acquire_for(milliseconds(200)) && bakery.counters.getSize() > 0) { //If there is an oven available, and something to take from the counter and put in the oven, this line will be true.
             bread.state = BAKING;
+            bakery.counters.remove(); //Have to remove the bread from the counter before putting it in the oven.
             bakery.ovens.add(bread);
             bakery.countersAvail.release(); //A counter space was acquired, used to put the bread in the oven, and now the counter space can be released.
         } else {
-            bakery.counters.add(bread); //put the bread back on the counter if no spaces available.
             return;
         }
 
@@ -82,13 +82,14 @@ void Baker::operator()() {
     while (true) {
         // STUDENTS: See comments above in Mixer::operator().
         Bread bread;
-        if (bakery.shelvesAvail.try_acquire_for(milliseconds(200))) {
-            bread.state = READY;
-            bakery.shelves.add(bread);
+        if (bakery.shelvesAvail.try_acquire_for(milliseconds(200)) && bakery.ovens.getSize() > 0) { //if there is an open shelf, and something to take out of the oven to put on the shelf, this line will be true.
+            bread.state = READY; //set the state to ready
+            bakery.ovens.remove(); //Takes the bread out of the oven buffer
+            bakery.shelves.add(bread); //adds the bread to the shelves buffer.
             bakery.ovensAvail.release(); //A counter space was acquired, used to put the bread in the oven, and now the counter space can be released.
         } else { 
-            bakery.ovens.add(bread);
-            return;
+           return;
+            
         }
 
         

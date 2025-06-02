@@ -26,9 +26,9 @@ struct Bakery {
     //
     // NOTE: Don't forget to include the <> after counting_semaphore.
     //
-    counting_semaphore<> ingredientsAvail{numIngredients};
-    counting_semaphore<> countersAvail{counters.getCapacity()};
-    counting_semaphore<> ovensAvail{ovens.getCapacity()};
-    counting_semaphore<> shelvesAvail{shelves.getCapacity()};
+    counting_semaphore<> ingredientsAvail{numIngredients}; //for the first set of configs, this should be 7. Once it reaches -1, the current thread is blocked and placed in a queue. 
+    counting_semaphore<> countersAvail{counters.getCapacity()}; //for the first set of configs, this should be 5.
+    counting_semaphore<> ovensAvail{ovens.getCapacity()};// for the first set of configs, this should be 5.
+    counting_semaphore<> shelvesAvail{shelves.getCapacity()}; //for the first set of configs, this should be 5.
 
 };
