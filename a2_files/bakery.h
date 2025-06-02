@@ -30,5 +30,8 @@ struct Bakery {
     counting_semaphore<> countersAvail{counters.getCapacity()}; //for the first set of configs, this should be 5.
     counting_semaphore<> ovensAvail{ovens.getCapacity()};// for the first set of configs, this should be 5.
     counting_semaphore<> shelvesAvail{shelves.getCapacity()}; //for the first set of configs, this should be 5.
+    counting_semaphore<> counterItems{0};
+    counting_semaphore<> ovenItems{0};
+    counting_semaphore<> shelfItems{0};
 
 };

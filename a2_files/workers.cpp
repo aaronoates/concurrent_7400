@@ -24,8 +24,11 @@ void Mixer::operator()() {
                 Bread bread; // create an instance of the bread struct as defined in the bread.h header file. 
                 bread.state = MIXED; //set the state to MIXED 
                 bakery.counters.add(bread); //calls the add function of buffer.h, which first locks access to the "counters" bread buffer so that no other threads can access "counters" while add() is running. If the size of the queue is less than the capacity of the "counter", the "bread" object is added to the queue. Else, it throws a runtime error. Finally, access to this buffer is unlocked again so other threads can access it.
-                
+                bakery.counterItems.release(); //There is now an item on the counter, so increment this semaphore.
 
+            } else {
+                bakery.ingredientsAvail.release(); //There was an ingredient acquired, but no counter space was available. Therefore, we have to re-release the ingredient since it was never actually used.
+                return;
             }
         }
 
@@ -59,16 +62,21 @@ void Mixer::operator()() {
 void Assistant::operator()() {
     while (true) {
         // STUDENTS: See comments above in Mixer::operator().
-        Bread bread;
+        if (!bakery.counterItems.try_acquire_for(milliseconds(200))) {
+            return; //There are no items on the counter, therefore the assistant has no work to do.
+        } 
+        
 
-
+        
     
-        if (bakery.ovensAvail.try_acquire_for(milliseconds(200)) && bakery.countersAvail.try_acquire_for(milliseconds(200))) { //If there is an oven available, and something to take from the counter and put in the oven, this line will
-            bread.state = BAKING;
-            bakery.counters.remove(); //Have to remove the bread from the counter before putting it in the oven.
-            bakery.ovens.add(bread);
+        if (bakery.ovensAvail.try_acquire_for(milliseconds(200))) { //If there is an oven available, this line will be true.
+            Bread bread = bakery.counters.remove(); //Have to remove the bread from the counter before putting it in the oven.
+            bread.state = BAKING; //this bread is now baking
+            bakery.ovens.add(bread); //Put the bread in the oven after it comes off the counter.
             bakery.countersAvail.release(); //A counter space was acquired, used to put the bread in the oven, and now the counter space can be released.
+            bakery.ovenItems.release(); //The bread was put in the oven.
         } else {
+            bakery.counterItems.release(); //If there is no ovens available, put the item back on the counter.
             return;
         }
 
@@ -81,17 +89,20 @@ void Assistant::operator()() {
 void Baker::operator()() {
     while (true) {
         // STUDENTS: See comments above in Mixer::operator().
-        Bread bread;
-        if (bakery.shelvesAvail.try_acquire_for(milliseconds(200)) && bakery.ovensAvail.try_acquire_for(milliseconds(200))) { //if there is an open shelf, and something to take out of the oven to put on the shelf, this line will be true.
-            bread.state = READY; //set the state to ready
-            bakery.ovens.remove(); //Takes the bread out of the oven buffer
-            bakery.shelves.add(bread); //adds the bread to the shelves buffer.
-            bakery.ovensAvail.release(); //A counter space was acquired, used to put the bread in the oven, and now the counter space can be released.
-        } else { 
-           return;
-            
+        if (!bakery.ovenItems.try_acquire_for(milliseconds(200))) {
+            return; //If there are no items in the oven, then the Baker has no work to do.
         }
 
+        if (bakery.shelvesAvail.try_acquire_for(milliseconds(200))) {
+            Bread bread = bakery.ovens.remove(); //have to remove the bread from the oven befroe putting it on the shelf.
+            bread.state = READY; //this bread is now ready
+            bakery.shelves.add(bread); //put the bread on the shelf after taking it out of the oven.
+            bakery.ovensAvail.release(); //An oven space was acquired, used to bake the bread, and now the oven space is free.
+            bakery.shelfItems.release(); //The bread is put on the shelf.
+        } else {
+            bakery.ovenItems.release(); //There was an oven item acquired, but no available shelves. Therefore, put the bread back in the oven.
+            return;
+        }
         
         // STUDENTS: See the comment at the bottom of Mixer::operator().
         
