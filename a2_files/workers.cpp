@@ -24,7 +24,7 @@ void Mixer::operator()() {
                 Bread bread; // create an instance of the bread struct as defined in the bread.h header file. 
                 bread.state = MIXED; //set the state to MIXED 
                 bakery.counters.add(bread); //calls the add function of buffer.h, which first locks access to the "counters" bread buffer so that no other threads can access "counters" while add() is running. If the size of the queue is less than the capacity of the "counter", the "bread" object is added to the queue. Else, it throws a runtime error. Finally, access to this buffer is unlocked again so other threads can access it.
-               
+                
 
             }
         }
@@ -63,7 +63,7 @@ void Assistant::operator()() {
 
 
     
-        if (bakery.ovensAvail.try_acquire_for(milliseconds(200)) && bakery.counters.getSize() > 0) { //If there is an oven available, and something to take from the counter and put in the oven, this line will be true.
+        if (bakery.ovensAvail.try_acquire_for(milliseconds(200)) && bakery.countersAvail.try_acquire_for(milliseconds(200))) { //If there is an oven available, and something to take from the counter and put in the oven, this line will
             bread.state = BAKING;
             bakery.counters.remove(); //Have to remove the bread from the counter before putting it in the oven.
             bakery.ovens.add(bread);
@@ -82,7 +82,7 @@ void Baker::operator()() {
     while (true) {
         // STUDENTS: See comments above in Mixer::operator().
         Bread bread;
-        if (bakery.shelvesAvail.try_acquire_for(milliseconds(200)) && bakery.ovens.getSize() > 0) { //if there is an open shelf, and something to take out of the oven to put on the shelf, this line will be true.
+        if (bakery.shelvesAvail.try_acquire_for(milliseconds(200)) && bakery.ovensAvail.try_acquire_for(milliseconds(200))) { //if there is an open shelf, and something to take out of the oven to put on the shelf, this line will be true.
             bread.state = READY; //set the state to ready
             bakery.ovens.remove(); //Takes the bread out of the oven buffer
             bakery.shelves.add(bread); //adds the bread to the shelves buffer.
