@@ -1,5 +1,5 @@
 #include "generators.h"
-
+#include <omp.h>
 vector<Polygon> generateNonIntersectingPolygonsSeq(PolygonConfig config, int numPolys, bool useBreak) {
     vector<Polygon> polys;
 
@@ -21,13 +21,49 @@ vector<Polygon> generateNonIntersectingPolygonsSeq(PolygonConfig config, int num
     return polys;
 }
 
+#include <omp.h>
+
 vector<Polygon> generateNonIntersectingPolygonsOMP(PolygonConfig config, int numPolys) {
     vector<Polygon> polys;
+    omp_lock_t lock;
+    omp_init_lock(&lock);
 
-    // STUDENTS: Implement this function to fill the polys vector with numPolys 
-    // non-intersecting polygons.
+    #pragma omp parallel
+    {
+        while (true) {
+            // Early exit: check if we've already added enough polygons
+            omp_set_lock(&lock);
+            if ((int)polys.size() >= numPolys) {
+                omp_unset_lock(&lock);
+                break;
+            }
+            omp_unset_lock(&lock);
 
+            // Generate candidate polygon
+            Polygon candidate(config);
 
+            // Check for intersection with existing polygons (read-only, under lock)
+            bool intersects = false;
+            omp_set_lock(&lock);
+            for (const Polygon& existing : polys) {
+                if (candidate.polyline.intersects(existing.polyline)()) {
+                    intersects = true;
+                    break; // Early break on first intersection
+                }
+            }
+            omp_unset_lock(&lock);
 
+            // If no intersection, add it to the shared list (under lock)
+            if (!intersects) {
+                omp_set_lock(&lock);
+                if ((int)polys.size() < numPolys) { // Recheck size in case it changed
+                    polys.push_back(candidate);
+                }
+                omp_unset_lock(&lock);
+            }
+        }
+    }
+
+    omp_destroy_lock(&lock);
     return polys;
 }
