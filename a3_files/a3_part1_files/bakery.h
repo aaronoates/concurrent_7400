@@ -20,40 +20,40 @@ struct Bakery {
            int shelfCapacity)
         : numIngredients(numIngredients), counters(counterCapacity),
           ovens(ovenCapacity), shelves(shelfCapacity),
-          ingredientsAvailable(numIngredients),
-          countersAvailable(counterCapacity),
-          ovensAvailable(ovenCapacity),
-          shelvesAvailable(shelfCapacity),
-          counterItems(0), ovenItems(0), shelfItems(0) {}
+          ingredientsAvailable(numIngredients), //assigns the numIngredients value passed to the constructor to the ingredients available variable.
+          countersAvailable(counterCapacity), //assigns the counterCapacity value passed to the constructor of Bakery to the counters available variable.
+          ovensAvailable(ovenCapacity), // same as above, passes oven capacity value to ovens available.
+          shelvesAvailable(shelfCapacity), // same as above, passes shelf capacity to shelves available.
+          counterItems(0), ovenItems(0), shelfItems(0) {} //initializes the variables shown here to zero.
 
-    mutex mtx;
+    mutex mtx; //an object that only one thread can acquire at a time.
 
     // Ingredient
-    condition_variable cv_ingredients;
-    int ingredientsAvailable;
+    condition_variable cv_ingredients; // a condition variable for the ingredients. A CV provides a queue of threads, associated with a mutex.
+    int ingredientsAvailable; // self explanatory
 
     // Counters
-    condition_variable cv_counters;
-    int countersAvailable;
-    condition_variable cv_counterItems;
+    condition_variable cv_counters; // a condition variable for the counters.
+    int countersAvailable; //self explanatory
+    condition_variable cv_counterItems; // a condition variable for the items in the counter buffer.
     int counterItems;
 
     // Ovens
-    condition_variable cv_ovens;
+    condition_variable cv_ovens; // a condition variable for the ovens.
     int ovensAvailable;
-    condition_variable cv_ovenItems;
+    condition_variable cv_ovenItems; //a condition variable for the items in the oven buffer.
     int ovenItems;
 
     // Shelves
-    condition_variable cv_shelves;
+    condition_variable cv_shelves; // a condition variable for the shelves.
     int shelvesAvailable;
-    condition_variable cv_shelfItems;
+    condition_variable cv_shelfItems; //a condition variable for the items in the shelf buffer.
     int shelfItems;
 
     // Helper functions with timeout
-    bool try_acquire_ingredients(milliseconds dur) {
-        unique_lock lock(mtx);
-        return cv_ingredients.wait_for(lock, dur, [&] { return ingredientsAvailable > 0; }) 
+    bool try_acquire_ingredients(milliseconds dur) { 
+        unique_lock lock(mtx); // a unique lock locks the mutex so that nothing else can access this thread. the mutex is unlocked when this is destroyed. it can be moved but not copied.
+        return cv_ingredients.wait_for(lock, dur, [&] { return ingredientsAvailable > 0; }) //wait_for causes the current thread to block until the condition variable is notified, the given duration has been elapsed, or a spurious wakeup occurs. pred can be optionally provided to detect spurious wakeup.
             ? (--ingredientsAvailable, true) 
             : false;
     }
