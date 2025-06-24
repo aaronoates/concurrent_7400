@@ -24,20 +24,20 @@ vector<Polygon> generateNonIntersectingPolygonsSeq(PolygonConfig config, int num
 #include <omp.h>
 
 vector<Polygon> generateNonIntersectingPolygonsOMP(PolygonConfig config, int numPolys) {
-    vector<Polygon> polys;
-    omp_lock_t lock;
-    omp_init_lock(&lock);
+    vector<Polygon> polys; //creates a vector of Polygon objects
+    omp_lock_t lock; // A type that holds the status of a lock, whether the lock is available or if a thread owns a lock.
+    omp_init_lock(&lock); // initializes a lock at the address of the "lock" object.
 
-    #pragma omp parallel
+    #pragma omp parallel // compiler directive to create a parallel region where multiple threads are executed in parallel.
     {
         while (true) {
             // Early exit: check if we've already added enough polygons
-            omp_set_lock(&lock);
-            if ((int)polys.size() >= numPolys) {
-                omp_unset_lock(&lock);
+            omp_set_lock(&lock); // locks the lock
+            if ((int)polys.size() >= numPolys) { //if the size of the polygons vector is greater than or equal to numPolys
+                omp_unset_lock(&lock); //unlock the lock and break the loop
                 break;
             }
-            omp_unset_lock(&lock);
+            omp_unset_lock(&lock); //unlock the lock
 
             // Generate candidate polygon
             Polygon candidate(config);
